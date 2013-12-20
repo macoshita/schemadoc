@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+var main = require('../lib/schemadoc');
+var read = require('read');
+var argv = require('optimist')
+  .options('u', {
+    alias: 'user',
+    'default': ''
+  })
+  .options('p', {
+    'default': false
+  })
+  .options('password', {
+    'default': ''
+  })
+  .options('h', {
+    alias: 'host',
+    'default': 'localhost'
+  })
+  .options('t', {
+    alias: 'template',
+    'default': path.join(__dirname, '../template/')
+  })
+  .options('o', {
+    alias: 'output',
+    'default': './schemadoc'
+  })
+  .argv;
+
+if (argv.p) {
+  read({ prompt: 'Password: ', silent: true }, function(err, password) {
+    argv.password = password;
+    main(argv);
+  });
+} else {
+  main(argv);
+}

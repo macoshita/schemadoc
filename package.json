@@ -1,0 +1,22 @@
+{
+  "name": "schemadoc",
+  "version": "0.0.0",
+  "description": "",
+  "bin": {
+    "schemadoc": "bin/schemadoc"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "optimist": "~0.6.0",
+    "read": "~1.0.5",
+    "jade": "~0.35.0",
+    "mysql": "~2.0.0-rc2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "preferGlobal": true,
+  "author": "",
+  "license": "MIT"
+}
