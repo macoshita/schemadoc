@@ -1,37 +1,30 @@
 #!/usr/bin/env node
 
-var main = require('../lib/schemadoc');
-var read = require('read');
-var argv = require('optimist')
-  .options('u', {
-    alias: 'user',
-    'default': ''
-  })
-  .options('p', {
-    'default': false
-  })
-  .options('password', {
-    'default': ''
-  })
-  .options('h', {
-    alias: 'host',
-    'default': 'localhost'
-  })
-  .options('t', {
-    alias: 'template',
-    'default': path.join(__dirname, '../template/')
-  })
-  .options('o', {
-    alias: 'output',
-    'default': './schemadoc'
-  })
-  .argv;
+'use strict';
 
-if (argv.p) {
-  read({ prompt: 'Password: ', silent: true }, function(err, password) {
-    argv.password = password;
-    main(argv);
-  });
-} else {
-  main(argv);
-}
+var path = require('path');
+var program = require('commander');
+var Q = require('q');
+var read = require('read');
+
+program
+  .option('-u, --user <name>', 'User for login DB', '')
+  .option('-p', 'Password to use when connecting DB', false)
+  .option('--password <password>', '[WARN] Password to use when connecting DB')
+  .option('-h, --host <host>', 'Connect to host', 'localhost')
+  .option('-o, --output <path>', 'Output Directory', './schemadoc')
+  .option('-t, --template <path>', 'Template Directory', path.join(__dirname, '../template'))
+  .parse(process.argv);
+
+Q.fcall(function() {
+  if (!program.P) {
+    return true;
+  }
+
+  return Q.nbind(read)({ prompt: 'Password: ', silent: true });
+
+}).then(function(value) {
+  console.log(value);
+  console.log(program.password);
+}).done();
+
