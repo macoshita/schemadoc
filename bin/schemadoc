@@ -75,27 +75,20 @@ Q.fcall(function() {
       conn.query('show index from ' + dbName + '.' + table.Name, function(err, indexes) {
         if (err) throw err;
 
+        var indexMap = {};
+        indexes.forEach(function(index) {
+          indexMap[index.Column_name] = index;
+        });
+
+        columns = columns.map(function(column) {
+          column.Index = indexMap[column.Field];
+          return column;
+        });
+
         deferred.resolve({
           info: table,
-          columns: columns,
-          indexes: indexes
+          columns: columns
         });
-      });
-    });
-
-    return deferred.promise;
-  }));
-
-}).then(function(tables) {
-  return Q.all(tables.map(function(table) {
-    var deferred = Q.defer();
-
-    conn.query('show index from ' + dbName + '.' + table.Name, function(err, columns) {
-      if (err) throw err;
-
-      deferred.resolve({
-        info: table,
-        columns: columns
       });
     });
 
@@ -128,6 +121,7 @@ Q.fcall(function() {
     return render('tables/table', 'tables/' + table.info.Name, {
       info: table.info,
       columns: table.columns,
+      indexes: table.indexes,
       dbName: dbName
     });
   });

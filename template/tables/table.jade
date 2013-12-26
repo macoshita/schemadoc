@@ -19,7 +19,8 @@ html
             th Comment
             th Type
             th Null
-            th Key
+            th Index
+            th Unique
             th Default
             th Extra
         each c in columns
@@ -31,7 +32,14 @@ html
                   p= line
               td= c.Type
               td= c.Null
-              td= c.Key
+              if c.Index
+                td #{c.Index.Key_name}
+                  if c.Index.Index_type == 'FULLTEXT'
+                    span (#{c.Index.Index_type})
+                td= c.Index.Non_unique == 1 ? '' : 'unique'
+              else
+                td
+                td
               td= c.Default
               td= c.Extra
 
