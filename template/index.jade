@@ -1,0 +1,19 @@
+doctype html
+html
+  head
+    meta(charset="UTF-8")
+    title #{dbName} DB Specification
+    link(rel='stylesheet', href='vendor/bootstrap/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href='vendor/bootstrap/dist/css/bootstrap-theme.min.css')
+    script(src='vendor/bootstrap/dist/js/bootstrap.min.js')
+    script(src='vendor/jquery/jquery.min.js')
+  body
+    .container
+      h1 #{dbName} DB Specification
+      table.table
+        each table in tables
+          tr
+            td 
+              a(href='tables/' + table.info.Name + '.html')= table.info.Name
+            td= table.info.Comment
+

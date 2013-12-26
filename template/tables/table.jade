@@ -1,0 +1,37 @@
+doctype html
+html
+  head
+    meta(charset="UTF-8")
+    title #{dbName}.#{info.Name}
+    link(rel='stylesheet', href='../vendor/bootstrap/dist/css/bootstrap.min.css')
+    link(rel='stylesheet', href='../vendor/bootstrap/dist/css/bootstrap-theme.min.css')
+    script(src='vendor/bootstrap/dist/js/bootstrap.min.js')
+    script(src='vendor/jquery/jquery.min.js')
+  body
+    .container
+      h1
+        a(href='../index.html')= dbName
+        .#{info.Name}
+      table.table
+        thead
+          tr
+            th Column
+            th Comment
+            th Type
+            th Null
+            th Key
+            th Default
+            th Extra
+        each c in columns
+          tbody
+            tr
+              td= c.Field
+              td
+                each line in c.Comment.split('\n')
+                  p= line
+              td= c.Type
+              td= c.Null
+              td= c.Key
+              td= c.Default
+              td= c.Extra
+

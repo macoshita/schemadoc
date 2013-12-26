@@ -2,29 +2,127 @@
 
 'use strict';
 
+var fs = require('fs');
 var path = require('path');
+var jade = require('jade');
+var mysql = require('mysql');
 var program = require('commander');
 var Q = require('q');
 var read = require('read');
+var wrench = require('wrench');
 
 program
+  .usage('[option] <database>')
   .option('-u, --user <name>', 'User for login DB', '')
   .option('-p', 'Password to use when connecting DB', false)
-  .option('--password <password>', '[WARN] Password to use when connecting DB')
+  .option('--password <password>', '[WARN] Password to use when connecting DB', '')
   .option('-h, --host <host>', 'Connect to host', 'localhost')
-  .option('-o, --output <path>', 'Output Directory', './schemadoc')
+  .option('-o, --output <path>', 'Output Directory', './doc')
   .option('-t, --template <path>', 'Template Directory', path.join(__dirname, '../template'))
   .parse(process.argv);
 
+var dbName = program.args[0];
+
+if (!dbName || !/^[a-zA-Z0-9_\-]+$/.test(dbName)) {
+  console.error("invalid db name");
+  process.exit(1);
+}
+
+var conn;
+
 Q.fcall(function() {
-  if (!program.P) {
-    return true;
+  var deferred = Q.defer();
+
+  if (program.P) {
+    read({ prompt: 'Password: ', silent: true }, function(err, password) {
+      if (err) throw err;
+      program.password = password;
+      deferred.resolve();
+    });
+  } else {
+    deferred.resolve();
   }
 
-  return Q.nbind(read)({ prompt: 'Password: ', silent: true });
+  return deferred.promise;
 
-}).then(function(value) {
-  console.log(value);
-  console.log(program.password);
+}).then(function() {
+  conn = mysql.createConnection({
+    host: program.host,
+    user: program.user,
+    password: program.password
+  });
+
+  conn.connect();
+
+}).then(function() {
+  var deferred = Q.defer();
+
+  conn.query('show table status from ' + dbName, function(err, rows, fields) {
+    if (err) throw err;
+
+    deferred.resolve(rows, fields);
+  });
+
+  return deferred.promise;
+
+}).then(function(tables) {
+  return Q.all(tables.map(function(table) {
+    var deferred = Q.defer();
+
+    conn.query('show full columns from ' + table.Name + ' from ' + dbName, function(err, columns) {
+      if (err) throw err;
+
+      deferred.resolve({
+        info: table,
+        columns: columns
+      });
+    });
+
+    return deferred.promise;
+  }));
+
+}).then(function(tables) {
+  wrench.rmdirSyncRecursive(program.output, true);
+
+  wrench.copyDirSyncRecursive(program.template, program.output);
+
+  var render = function(jadeName, output, opt) {
+    var df = Q.defer();
+    var template = path.join(program.output, jadeName + '.jade');
+    output = path.join(program.output, output + '.html');
+
+    jade.renderFile(template, opt, function(err, html) {
+      if (err) throw err;
+
+      fs.writeFile(output, html, function(err) {
+        if (err) throw err;
+        df.resolve();
+      });
+    });
+
+    return df.promise;
+  };
+
+  var promises = tables.map(function(table) {
+    return render('tables/table', 'tables/' + table.info.Name, {
+      info: table.info,
+      columns: table.columns,
+      dbName: dbName
+    });
+  });
+
+  promises.push(render('index', 'index', {
+    dbName: dbName,
+    tables: tables
+  }));
+
+  return Q.all(promises);
+
+}).then(function() {
+  console.log('output to ' + program.output);
+
+}).fin(function() {
+  conn.end();
+
 }).done();
 
