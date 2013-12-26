@@ -69,7 +69,28 @@ Q.fcall(function() {
   return Q.all(tables.map(function(table) {
     var deferred = Q.defer();
 
-    conn.query('show full columns from ' + table.Name + ' from ' + dbName, function(err, columns) {
+    conn.query('show full columns from ' + dbName + '.' + table.Name, function(err, columns) {
+      if (err) throw err;
+
+      conn.query('show index from ' + dbName + '.' + table.Name, function(err, indexes) {
+        if (err) throw err;
+
+        deferred.resolve({
+          info: table,
+          columns: columns,
+          indexes: indexes
+        });
+      });
+    });
+
+    return deferred.promise;
+  }));
+
+}).then(function(tables) {
+  return Q.all(tables.map(function(table) {
+    var deferred = Q.defer();
+
+    conn.query('show index from ' + dbName + '.' + table.Name, function(err, columns) {
       if (err) throw err;
 
       deferred.resolve({
