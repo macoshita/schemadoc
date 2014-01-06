@@ -19,7 +19,7 @@ program
   .option('-h, --host <host>', 'Connect to host', 'localhost')
   .option('-o, --output <path>', 'Output Directory', './doc')
   .option('-t, --template <path>', 'Template Directory', path.join(__dirname, '../template'))
-  .option('-c, --charset <charset>', 'The charset for the DB connection', 'UTF8')
+  .option('-c, --charset <charset>', 'The charset for the DB connection', 'UTF8_GENERAL_CI')
   .parse(process.argv);
 
 var dbName = program.args[0];
